@@ -75,12 +75,18 @@ jobs:
                                                         libc6-dev device-tree-compiler ca-certificates python3 \
                                                         xz-utils libc6-dev aria2 build-essential ccache libncurses-dev
                                                         #libncurses5
-        aria2c -x 16 -k 1M -o clang.tar.gz "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/mirror-goog-main-llvm-toolchain-source/clang-r574158.tar.gz"
+        aria2c -x 16 -k 1M -o clang.tar.gz "https://github.com/ZyCromerZ/Clang/releases/download/15.0.7-20251111-release/Clang-15.0.7-20251111.tar.gz"
         mkdir clang
         tar -xf clang.tar.gz -C clang
         echo "tools-folder=$(pwd)" >> $GITHUB_OUTPUT
       working-directory: ${{ steps.workspace.outputs.workspace-folder }}
       id: tools
+
+    - name: Display toolchain version
+      run: |
+        export PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH"
+        clang --version
+      working-directory: ${{ steps.workspace.outputs.workspace-folder }}
 
     - name: Clone kernel source
       run: |
