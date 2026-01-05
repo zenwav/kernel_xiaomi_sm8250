@@ -137,7 +137,7 @@ jobs:
       if: ${{ success() && github.event.inputs.ANYKERNEL_URL != ''}}
       continue-on-error: true
       run: |
-        git clone --recursive --depth=1 ${{ github.event.inputs.ANYKERNEL_URL }}
+        git clone --recursive --depth=1 ${{ github.event.inputs.ANYKERNEL_URL }} AnyKernel3
 
         # if [ ! -d "AnyKernel3" ]; then
         #   if [[ -z "${{ github.event.inputs.ANYKERNEL_BRANCH }}" ]]; then
