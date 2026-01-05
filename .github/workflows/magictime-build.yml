@@ -167,6 +167,7 @@ jobs:
     - name: Check the output directory before uploading
       run: |
         ls -al ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/
+        find ${{ steps.kernel.outputs.kernel-folder }} -name "dtb.img"
         
     - name: Get short SHA
       run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
