@@ -125,6 +125,14 @@ jobs:
         PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH" \
         make -j$(nproc --all) O=out \
                               CC=clang \
+                              HOSTCC=gcc \
+                              LD=ld.lld \
+                              AS=llvm-as \
+                              AR=llvm-ar \
+                              NM=llvm-nm \
+                              OBJCOPY=llvm-objcopy \
+                              OBJDUMP=llvm-objdump \
+                              STRIP=llvm-strip \
                               CROSS_COMPILE=aarch64-linux-gnu- \
                               CROSS_COMPILE_COMPAT=arm-linux-gnueabi- \
                               LLVM=1 \
