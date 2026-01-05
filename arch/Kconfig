@@ -486,7 +486,7 @@ config STACKPROTECTOR_STRONG
 	  size by about 2%.
 
 config LTO
-	def_bool n
+	def_bool y
 
 config ARCH_SUPPORTS_LTO_CLANG
 	bool
