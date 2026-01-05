@@ -134,7 +134,7 @@ jobs:
       id: build
 
     - name: AnyKernel3
-      if: ${{ success() && github.event.inputs.ANYKERNEL_URL != '' && github.event.inputs.ANYKERNEL_BRANCH != '' }}
+      if: ${{ success() && github.event.inputs.ANYKERNEL_URL != ''}}
       continue-on-error: true
       run: |
         git clone --recursive --depth=1 ${{ github.event.inputs.ANYKERNEL_URL }}
@@ -184,7 +184,7 @@ jobs:
           ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/dtb
           ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/dtbo.img
           ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/${{ steps.anykernel.outputs.zipname }}
-        name: N0kernel-${{ env.SHORT_SHA }}
+        name: MagicTime-${{ env.SHORT_SHA }}
         tag_name: ${{ github.run_id }}
         body: |
           <b>${{ steps.workspace.outputs.build_title }}</b>
