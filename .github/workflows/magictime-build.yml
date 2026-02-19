@@ -68,7 +68,7 @@ jobs:
 
     - name: Cache AOSP Clang
       id: cache-clang
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: workspace/clang
         key: aosp-clang-r574158
@@ -93,14 +93,14 @@ jobs:
 
     - name: Cache GCC ARM (arm-linux-androideabi-4.9)
       id: cache-gcc-arm
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: workspace/arm-linux-androideabi-4.9
         key: gcc-arm-linux-androideabi-4.9-lineage
 
     - name: Cache GCC AArch64 (aarch64-linux-android-4.9)
       id: cache-gcc-aarch64
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: workspace/aarch64-linux-android-4.9
         key: gcc-aarch64-linux-android-4.9-lineage
