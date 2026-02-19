@@ -53,7 +53,6 @@ jobs:
         echo "Kernel Tree: ${{ github.event.inputs.KERNEL_TREE }}/tree/${{ github.event.inputs.KERNEL_TREE_BRANCH }}"
         echo "Codename: ${{ github.event.inputs.CODENAME }}"
         echo "AnyKernel Url: ${{ github.event.inputs.ANYKERNEL_URL }}/tree/${{ github.event.inputs.ANYKERNEL_BRANCH }}"
-        echo "Send Notification: ${{ fromJSON('["No", "Yes"]')[fromJSON(github.event.inputs.ENABLE_KERNELSU)] }}
         echo "KernelSU: ${{ fromJSON('["No", "Yes"]')[fromJSON(github.event.inputs.ENABLE_KERNELSU)] }}
         echo "::endgroup::"
 
@@ -92,10 +91,43 @@ jobs:
         echo "Clang downloaded and extracted"
       working-directory: ${{ steps.workspace.outputs.workspace-folder }}
 
+    - name: Cache GCC ARM (arm-linux-androideabi-4.9)
+      id: cache-gcc-arm
+      uses: actions/cache@v4
+      with:
+        path: workspace/arm-linux-androideabi-4.9
+        key: gcc-arm-linux-androideabi-4.9-lineage
+
+    - name: Cache GCC AArch64 (aarch64-linux-android-4.9)
+      id: cache-gcc-aarch64
+      uses: actions/cache@v4
+      with:
+        path: workspace/aarch64-linux-android-4.9
+        key: gcc-aarch64-linux-android-4.9-lineage
+
+    - name: Clone GCC ARM (if not cached)
+      if: steps.cache-gcc-arm.outputs.cache-hit != 'true'
+      run: |
+        git clone --depth=1 \
+          https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9 \
+          arm-linux-androideabi-4.9
+      working-directory: ${{ steps.workspace.outputs.workspace-folder }}
+
+    - name: Clone GCC AArch64 (if not cached)
+      if: steps.cache-gcc-aarch64.outputs.cache-hit != 'true'
+      run: |
+        git clone --depth=1 \
+          https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 \
+          aarch64-linux-android-4.9
+      working-directory: ${{ steps.workspace.outputs.workspace-folder }}
+
     - name: Set toolchain path
       id: tools
       run: |
-        echo "tools-folder=${{ steps.workspace.outputs.workspace-folder }}" >> $GITHUB_OUTPUT
+        BASE="${{ steps.workspace.outputs.workspace-folder }}"
+        echo "tools-folder=$BASE"                                   >> $GITHUB_OUTPUT
+        echo "gcc-arm=$BASE/arm-linux-androideabi-4.9/bin"          >> $GITHUB_OUTPUT
+        echo "gcc-aarch64=$BASE/aarch64-linux-android-4.9/bin"      >> $GITHUB_OUTPUT
 
     - name: Display toolchain version
       run: |
@@ -137,13 +169,13 @@ jobs:
     - name: Building kernel
       run: |
         git submodule init && git submodule update
-        export PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH"
+        export PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:${{ steps.tools.outputs.gcc-aarch64 }}:${{ steps.tools.outputs.gcc-arm }}:$PATH"
         export ARCH=arm64
+        export CROSS_COMPILE=aarch64-linux-gnu-
+        export CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
         export KBUILD_BUILD_USER="Nehal"
         export KBUILD_BUILD_HOST="GitHub Actions"
         make O=out CC=clang LLVM=1 LLVM_IAS=1 alioth_defconfig vendor/xiaomi/magictime-common.config
-        # sed -i '/CONFIG_LTO_CLANG_THIN/c\CONFIG_LTO_CLANG_THIN=n' out/.config && sed -i '/CONFIG_LTO_CLANG_FULL/c\CONFIG_LTO_CLANG_FULL=y' out/.config
-        PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH" \
         make -j$(nproc --all) O=out \
                               CC=clang \
                               HOSTCC=gcc \
@@ -154,11 +186,9 @@ jobs:
                               OBJCOPY=llvm-objcopy \
                               OBJDUMP=llvm-objdump \
                               STRIP=llvm-strip \
-                              CROSS_COMPILE=aarch64-linux-gnu- \
-                              CROSS_COMPILE_COMPAT=arm-linux-gnueabi- \
                               LLVM=1 \
                               LLVM_IAS=1
-        echo "elapsed_time=$(echo "$(date +%s)"-"${{ steps.workspace.outputs.start_time }}" | bc)" >> $GITHUB_OUTPUT
+        echo "elapsed_time=$(($(date +%s) - ${{ steps.workspace.outputs.start_time }}))" >> $GITHUB_OUTPUT
       working-directory: ${{ steps.kernel.outputs.kernel-folder }}
       id: build
 
@@ -181,7 +211,7 @@ jobs:
           cp -f out/arch/arm64/boot/Image AnyKernel3/Image -rv
           test -f out/arch/arm64/boot/dtbo.img && cp -v out/arch/arm64/boot/dtbo.img AnyKernel3/dtbo.img
           test -f out/arch/arm64/boot/dtb.img && cp -v out/arch/arm64/boot/dtb.img AnyKernel3/dtb
-        elif [ -f out/arch/arm64/boot/Image.gz-dtb]; then
+        elif [ -f out/arch/arm64/boot/Image.gz-dtb ]; then
           cp -f out/arch/arm64/boot/Image.gz-dtb AnyKernel3/ -rv
           test -f out/arch/arm64/boot/dtbo.img && cp -v out/arch/arm64/boot/dtbo.img AnyKernel3/
         fi
